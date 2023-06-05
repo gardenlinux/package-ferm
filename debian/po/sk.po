@@ -1,0 +1,43 @@
+# Slovak translation for ferm debconf template.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the ferm package.
+#
+# Ivan Masár <helix84@centrum.sk>, 2012.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: ferm\n"
+"Report-Msgid-Bugs-To: ferm-maintainers@ned.snow-crash.org\n"
+"POT-Creation-Date: 2006-09-25 22:40+0200\n"
+"PO-Revision-Date: 2012-02-24 13:32+0100\n"
+"Last-Translator: Ivan Masár <helix84@centrum.sk>\n"
+"Language-Team: Slovak <debian-l10n-slovak@lists.debian.org>\n"
+"Language: sk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Type: boolean
+#. Description
+#: ../ferm.templates:1001
+msgid "Enable ferm on bootup?"
+msgstr "Zapnúť ferm pri štarte?"
+
+#. Type: boolean
+#. Description
+#: ../ferm.templates:1001
+msgid "Ferm can load firewall rules on every bootup from /etc/ferm/ferm.conf."
+msgstr ""
+"Ferm môže načítať pravidlá firewallu pri každom štarte z /etc/ferm/ferm.conf."
+
+#. Type: boolean
+#. Description
+#: ../ferm.templates:1001
+msgid ""
+"The default configuration allows SSH login on port 22; if you are installing "
+"this package remotely on another port, you should not choose this option, "
+"and later edit /etc/default/ferm to enable ferm."
+msgstr ""
+"Predvolená konfigurácia umožňuje prihlásenie pomocou SSH na porte 22. Ak "
+"tento balík inštalujete vzdialene na inom porte, nemali by ste vybrať túto "
+"voľbu, ale neskôr upraviť /etc/default/ferm a zapnúť ferm."

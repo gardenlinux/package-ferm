@@ -1,0 +1,5 @@
+version=3
+
+
+opts=pgpsigurlmangle=s/$/.sig/ http://ferm.foo-projects.org/download/(2.[0-9.]+)/ferm-([0-9.]*)\.tar\.xz
+

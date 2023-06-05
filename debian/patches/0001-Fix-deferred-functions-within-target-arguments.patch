@@ -1,0 +1,107 @@
+From: Faidon Liambotis <paravoid@debian.org>
+Date: Mon, 24 Feb 2020 21:59:33 +0200
+Subject: Fix (deferred) functions within target arguments
+
+Since deferred functions were introduced (commits fe99bc2, 31bb5d3
+etc.), passing functions like @ipfilter to target arguments (such SNAT's
+to-source) was broken, resulting into broken output.
+
+Abstract the realization of deferred functions into a separate
+subroutine, and call it also from parse_keyword().
+
+Thanks to Endre Szabo for reporting this issue. Fixes #63.
+---
+ src/ferm                  | 36 +++++++++++++++++++++---------------
+ test/misc/ipfilter.ferm   |  7 +++++++
+ test/misc/ipfilter.result |  2 ++
+ 3 files changed, 30 insertions(+), 15 deletions(-)
+
+diff --git a/src/ferm b/src/ferm
+index 4278e69..b2a9cda 100644
+--- a/src/ferm
++++ b/src/ferm
+@@ -548,23 +548,12 @@ sub address_magic {
+     my @ips;
+     my $negated = 0;
+     if (ref $value and ref $value eq 'ARRAY') {
+-        foreach my $inside_value (@$value) {
+-            # realize deferred values even within arrays
+-            if (ref $inside_value and ref $inside_value eq 'deferred') {
+-                my @args = @$inside_value;
+-                my $function = shift @args;
+-                push @ips, &$function($domain, @args);
+-            } else {
+-                push @ips, $inside_value;
+-            }
+-        }
++        @ips = realize_deferred($domain, @$value);
++    } elsif (ref $value and ref $value eq 'deferred') {
++        @ips = realize_deferred($domain, $value);
+     } elsif (ref $value and ref $value eq 'negated') {
+         @ips = @$value;
+         $negated = 1;
+-    } elsif (ref $value and ref $value eq 'deferred') {
+-        my @args = @$value;
+-        my $function = shift @args;
+-        @ips = &$function($domain, @args);
+     } elsif (ref $value) {
+         die;
+     } else {
+@@ -1683,6 +1672,22 @@ sub eval_bool($) {
+     }
+ }
+ 
++sub realize_deferred {
++    my $domain = shift;
++    my @values;
++    foreach my $inside_value (@_) {
++        # realize deferred values even within arrays
++        if (ref $inside_value and ref $inside_value eq 'deferred') {
++            my @args = @$inside_value;
++            my $function = shift @args;
++            push @values, &$function($domain, @args);
++        } else {
++            push @values, $inside_value;
++        }
++    }
++    return @values;
++}
++
+ sub is_netfilter_core_target($) {
+     my $target = shift;
+     die unless defined $target and length $target;
+@@ -1878,7 +1883,8 @@ sub parse_keyword(\%$$) {
+     } elsif (ref $params && ref $params eq 'CODE') {
+         $value = &$params($rule);
+     } elsif ($params eq 'm') {
+-        $value = bless [ to_array getvalues() ], 'multi';
++        my $domain = $stack[0]{auto}{DOMAIN};
++        $value = bless [ realize_deferred($domain, to_array getvalues()) ], 'multi';
+     } elsif ($params =~ /^[a-z]/) {
+         if (exists $def->{negation} and not $negated) {
+             my $token = peek_token();
+diff --git a/test/misc/ipfilter.ferm b/test/misc/ipfilter.ferm
+index 0b24207..aea0dcc 100644
+--- a/test/misc/ipfilter.ferm
++++ b/test/misc/ipfilter.ferm
+@@ -10,3 +10,10 @@ domain (ip ip6) chain INPUT {
+     }
+ }
+ &accept_range(@ipfilter($TRUSTED_HOSTS));
++
++# also try @ipfilter as an "m" target; see issue #63 for a real-world example
++@def $NATTED_NETS = (192.168.0.0/24 2001:abcd:ef::/64);
++@def $SNAT_ADDR = (10.0.0.1 2001:efff::1);
++domain (ip ip6) chain INPUT {
++    saddr @ipfilter($NATTED_NETS) outerface eth0 SNAT to-source @ipfilter($SNAT_ADDR);
++}
+diff --git a/test/misc/ipfilter.result b/test/misc/ipfilter.result
+index d6b6ed7..43f8a15 100644
+--- a/test/misc/ipfilter.result
++++ b/test/misc/ipfilter.result
+@@ -2,3 +2,5 @@ iptables -t filter -A INPUT -s 192.168.0.40 -p tcp --dport ssh -j ACCEPT
+ ip6tables -t filter -A INPUT -s 2001:abcd:ef::40 -p tcp --dport ssh -j ACCEPT
+ iptables -t filter -A INPUT -s 192.168.0.40 -j ACCEPT
+ ip6tables -t filter -A INPUT -s 2001:abcd:ef::40 -j ACCEPT
++iptables -t filter -A INPUT -s 192.168.0.0/24 -o eth0 -j SNAT --to-source 10.0.0.1
++ip6tables -t filter -A INPUT -s 2001:abcd:ef::/64 -o eth0 -j SNAT --to-source 2001:efff::1

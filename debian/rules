@@ -1,0 +1,16 @@
+#!/usr/bin/make -f
+# -*- mode: makefile; coding: utf-8 -*-
+
+# See debhelper(7) (uncomment to enable)
+# output every command that modifies files on the build system.
+#DH_VERBOSE = 1
+
+%:
+	dh $@
+
+source:
+	:
+
+override_dh_auto_clean::
+
+override_dh_auto_install::
