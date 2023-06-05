@@ -7,3 +7,5 @@ variables:
 #  SOURCE_REPO: https://github.com/MaxKellermann/ferm
 #  SOURCE_TAG_PREFIX: v
   BUILD_ARCH_ALL: 'true'
+  BUILD_ARCH_ARM64: ''
+  BUILD_ARCH_AMD64: ''
