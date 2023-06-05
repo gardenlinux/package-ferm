@@ -1,11 +1,11 @@
 include:
   project: gardenlinux/gardenlinux-package-build
-  file: pipeline/pipeline.yml
+  file: pipeline/pipeline-git.yml
 
 variables:
   SOURCE_NAME: ferm
-#  SOURCE_REPO: https://github.com/MaxKellermann/ferm
-#  SOURCE_TAG_PREFIX: v
+  SOURCE_REPO: https://github.com/MaxKellermann/ferm
+  SOURCE_TAG_PREFIX: v
   BUILD_ARCH_ALL: 'true'
   BUILD_ARCH_ARM64: ''
   BUILD_ARCH_AMD64: ''
