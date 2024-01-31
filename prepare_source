@@ -4,3 +4,4 @@ version="$version_orig-0"
 git_src --branch "v$version_orig" https://github.com/MaxKellermann/ferm
 apt_src --ignore-orig ferm
 apply_patches
+version_suffix=gardenlinux0
